@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Host – Fehlende Zahlen wählen</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #ffffff 0, #f3f4f6 42%, #e5e7eb 100%);
+      color: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 12px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(209, 213, 219, 0.9);
+      overflow: hidden;
+    }
+
+    .top-bar {
+      background: linear-gradient(90deg, #A6192E, #7f1222);
+      color: white;
+      padding: 14px 22px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      background: rgba(0,0,0,0.12);
+    }
+
+    .content { padding: 24px; }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+    }
+
+    p {
+      margin: 0 0 18px;
+      color: #4b5563;
+      line-height: 1.45;
+    }
+
+    .card {
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #374151;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      background: white;
+    }
+
+    input[type="number"] { max-width: 140px; text-align: center; }
+
+    input:focus {
+      outline: none;
+      border-color: #A6192E;
+      box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.18);
+    }
+
+    .btn {
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #111827;
+      padding: 10px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      border-color: #A6192E;
+      background: linear-gradient(135deg, #A6192E, #d12440);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(166,25,46,0.35);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .link-box {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .link-box input {
+      flex: 1 1 420px;
+      font-size: 0.9rem;
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .ok { color: #15803d; }
+    .error { color: #b91c1c; }
+    .hint { font-size: 0.82rem; color: #6b7280; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <div class="logo-pill">Linde Material Handling</div>
+      <div>Host-Seite · Runde 4</div>
+    </div>
+
+    <div class="content">
+      <h1>Fehlende Zahlen festlegen</h1>
+      <p>Wähle zwei unterschiedliche Zahlen von <strong>1 bis 79</strong>. Daraus wird ein Link für das Spiel erstellt.</p>
+
+      <div class="card">
+        <div class="row">
+          <div>
+            <label for="num1">Fehlende Zahl 1</label>
+            <input type="number" id="num1" min="1" max="79" placeholder="1–79" />
+          </div>
+          <div>
+            <label for="num2">Fehlende Zahl 2</label>
+            <input type="number" id="num2" min="1" max="79" placeholder="1–79" />
+          </div>
+          <button class="btn btn-primary" id="create-link-btn">Link erstellen</button>
+          <button class="btn" id="random-btn">Zufällig</button>
+        </div>
+        <div class="hint">Wichtig: Beide Zahlen müssen unterschiedlich sein.</div>
+        <div id="status" class="status"></div>
+      </div>
+
+      <div class="card">
+        <label for="game-link">Spiel-Link</label>
+        <div class="link-box">
+          <input type="text" id="game-link" readonly placeholder="Hier erscheint der fertige Link" />
+          <button class="btn" id="copy-btn">Kopieren</button>
+          <button class="btn btn-primary" id="open-btn">Öffnen</button>
+        </div>
+        <div class="hint">Der Link öffnet die Datei <strong>zahlenfinde_runde4_timer_bis79.html</strong> mit den ausgewählten fehlenden Zahlen.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const num1Input = document.getElementById("num1");
+    const num2Input = document.getElementById("num2");
+    const createLinkBtn = document.getElementById("create-link-btn");
+    const randomBtn = document.getElementById("random-btn");
+    const copyBtn = document.getElementById("copy-btn");
+    const openBtn = document.getElementById("open-btn");
+    const gameLinkInput = document.getElementById("game-link");
+    const statusEl = document.getElementById("status");
+
+    const MIN_NUMBER = 1;
+    const MAX_NUMBER = 79;
+    const GAME_FILE = "zahlenfinde_runde4_timer_bis79.html";
+
+    function setStatus(text, type) {
+      statusEl.textContent = text;
+      statusEl.className = "status " + (type || "");
+    }
+
+    function encodeCfg(n1, n2) {
+      const sorted = [n1, n2].sort((a, b) => a - b);
+      const raw = sorted.join(",");
+      return btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function validateNumbers() {
+      const n1 = parseInt(num1Input.value, 10);
+      const n2 = parseInt(num2Input.value, 10);
+
+      if (Number.isNaN(n1) || Number.isNaN(n2)) {
+        setStatus("Bitte zwei Zahlen eintragen.", "error");
+        return null;
+      }
+
+      if (n1 < MIN_NUMBER || n1 > MAX_NUMBER || n2 < MIN_NUMBER || n2 > MAX_NUMBER) {
+        setStatus("Bitte nur Zahlen zwischen 1 und 79 wählen.", "error");
+        return null;
+      }
+
+      if (n1 === n2) {
+        setStatus("Die beiden fehlenden Zahlen müssen unterschiedlich sein.", "error");
+        return null;
+      }
+
+      return [n1, n2];
+    }
+
+    function createGameLink() {
+      const nums = validateNumbers();
+      if (!nums) return;
+
+      const cfg = encodeCfg(nums[0], nums[1]);
+      const currentUrl = new URL(window.location.href);
+      const gameUrl = new URL(GAME_FILE, currentUrl);
+      gameUrl.searchParams.set("cfg", cfg);
+
+      gameLinkInput.value = gameUrl;
+      setStatus(`✅ Link erstellt. Fehlende Zahlen: ${nums[0]} und ${nums[1]}.`, "ok");
+    }
+
+    function randomNumbers() {
+      const all = Array.from({ length: MAX_NUMBER }, (_, i) => i + 1);
+      const idx1 = Math.floor(Math.random() * all.length);
+      const n1 = all.splice(idx1, 1)[0];
+      const idx2 = Math.floor(Math.random() * all.length);
+      const n2 = all[idx2];
+
+      num1Input.value = n1;
+      num2Input.value = n2;
+      createGameLink();
+    }
+
+    async function copyLink() {
+      if (!gameLinkInput.value) {
+        setStatus("Erstelle zuerst einen Link.", "error");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(gameLinkInput.value);
+        setStatus("✅ Link wurde kopiert.", "ok");
+      } catch (e) {
+        gameLinkInput.select();
+        document.execCommand("copy");
+        setStatus("✅ Link wurde kopiert.", "ok");
+      }
+    }
+
+    function openGame() {
+      if (!gameLinkInput.value) {
+        setStatus("Erstelle zuerst einen Link.", "error");
+        return;
+      }
+      window.open(gameLinkInput.value, "_blank");
+    }
+
+    createLinkBtn.addEventListener("click", createGameLink);
+    randomBtn.addEventListener("click", randomNumbers);
+    copyBtn.addEventListener("click", copyLink);
+    openBtn.addEventListener("click", openGame);
+
+    num1Input.addEventListener("keydown", e => { if (e.key === "Enter") createGameLink(); });
+    num2Input.addEventListener("keydown", e => { if (e.key === "Enter") createGameLink(); });
+  </script>
+</body>
+</html>
