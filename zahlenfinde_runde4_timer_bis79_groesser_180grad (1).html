@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zahlenfinde – Runde 4 (fehlende Zahlen)</title>
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #ffffff 0, #f3f4f6 40%, #e5e7eb 100%);
+      color: #111827;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 24px 12px;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 1200px;
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 0 0 18px;
+      box-shadow:
+        0 18px 40px rgba(15,23,42,0.22),
+        0 0 0 1px rgba(209,213,219,0.9);
+      overflow: hidden;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 22px;
+      background: linear-gradient(90deg, #A6192E, #7f1222);
+      color: #f9fafb;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      background: rgba(0,0,0,0.12);
+    }
+
+    .top-bar-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .top-bar-right {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .game-header {
+      padding: 14px 24px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      letter-spacing: 0.02em;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .title-block p {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .info-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .badge,
+    .stat {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    .badge {
+      background: #A6192E;
+      border-color: #A6192E;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .stat-label {
+      color: #6b7280;
+    }
+
+    .controls-row {
+      padding: 10px 24px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #111827;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+                  background 0.12s ease, border 0.12s ease;
+    }
+
+    .btn-primary {
+      border-color: #A6192E;
+      background: linear-gradient(135deg, #A6192E, #d12440);
+      color: #f9fafb;
+      font-weight: 600;
+      box-shadow: 0 8px 18px rgba(166,25,46,0.45);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(166,25,46,0.55);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .board-wrapper {
+      position: relative;
+      margin-top: 6px;
+      padding: 0 24px 4px;
+    }
+
+    .board-shell {
+      border-radius: 14px;
+      padding: 12px;
+      background: radial-gradient(circle at top, #f9fafb 0, #eef2ff 32%, #e5e7eb 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(148,163,184,0.35),
+        0 16px 30px rgba(15,23,42,0.18);
+    }
+
+    .board {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.6);
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: #ffffff;
+      box-shadow:
+        inset 0 0 30px rgba(15,23,42,0.25);
+    }
+
+    .round-4 {
+      background-image: url("runde4.png");
+      background-blend-mode: multiply;
+    }
+
+    .number-bubble {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow:
+        0 1px 2px rgba(0,0,0,0.65),
+        0 0 6px rgba(0,0,0,0.35);
+      box-shadow:
+        0 5px 12px rgba(15,23,42,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.28),
+        0 0 0 1px rgba(15,23,42,0.25);
+      padding: 0;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .board.debug .number-bubble {
+      outline: 1px dashed rgba(0,0,0,0.35);
+    }
+
+    .answer-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .answer-panel input[type="number"] {
+      width: 70px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      text-align: center;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      background: #f9fafb;
+    }
+
+    .answer-panel input[type="number"]:focus {
+      outline: none;
+      border-color: #A6192E;
+      box-shadow: 0 0 0 2px rgba(166,25,46,0.25);
+      background: #ffffff;
+    }
+
+    .result-text {
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    .result-ok { color: #15803d; }
+    .result-error { color: #b91c1c; }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(17,24,39,0.55), rgba(17,24,39,0.9));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .overlay-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px 22px;
+      border: 1px solid #d1d5db;
+      max-width: 460px;
+      text-align: center;
+      box-shadow: 0 22px 44px rgba(0,0,0,0.45);
+    }
+
+    .overlay-card h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.6rem;
+      color: #A6192E;
+    }
+
+    .overlay-card p {
+      margin: 4px 0;
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+
+    .overlay-buttons {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .footer {
+      padding: 6px 24px 0;
+      font-size: 0.75rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer span b {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    @media (max-width: 900px) {
+      .game-container {
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .board-wrapper {
+        padding: 0 14px 4px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .title-block h1 {
+        font-size: 1.3rem;
+      }
+      .board-shell {
+        padding: 8px;
+      }
+      .board {
+        aspect-ratio: 9 / 16;
+      }
+      .info-grid {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="logo-pill">Linde Material Handling</div>
+      <div class="top-bar-title">6S Trainingsspiel – Zahlen finden</div>
+    </div>
+    <div class="top-bar-right">
+      Runde 4 · Fokus: Suchaufwand & Struktur
+    </div>
+  </div>
+
+  <div class="game-header">
+    <div class="title-block">
+      <h1>Welche Zahlen fehlen?</h1>
+      <p>Die Zahlen <strong>1 bis 79</strong> sind überall auf der Fläche verteilt – aber <strong>2 fehlen</strong>…</p>
+    </div>
+    <div class="info-grid">
+      <div class="badge">
+        🔍 <span>Runde 4</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Fehlende Zahlen:</span>
+        <span>genau 2</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Versuche übrig:</span>
+        <span id="attempts-label">5 / 5</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Zeit:</span>
+        <span id="timer-label">00:00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <div class="answer-panel">
+      <span class="hint">Trage die fehlenden Zahlen ein:</span>
+      <input type="number" id="guess1" min="1" max="79" />
+      <input type="number" id="guess2" min="1" max="79" />
+      <button class="btn btn-primary" id="check-btn">Lösung prüfen</button>
+    </div>
+    <div>
+      <div class="hint" id="cooldown-hint">
+        Du kannst auch erstmal nur eine Zahl eintragen und prüfen.
+      </div>
+      <div id="result" class="result-text"></div>
+    </div>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="board-shell">
+      <div class="board round-4" id="board"></div>
+    </div>
+
+    <div class="overlay" id="overlay" style="display:none;">
+      <div class="overlay-card" id="overlay-content"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span><b>Hinweis:</b> Eine richtige Zahl wird grün, eine falsche rot – Versuche werden nur bei falschen Zahlen abgezogen.</span>
+    <span>5 Versuche · danach 2 Minuten Pause</span>
+  </div>
+</div>
+
+<script>
+  const board = document.getElementById("board");
+  const resultEl = document.getElementById("result");
+  const guess1Input = document.getElementById("guess1");
+  const guess2Input = document.getElementById("guess2");
+  const checkBtn = document.getElementById("check-btn");
+  const overlay = document.getElementById("overlay");
+  const overlayContent = document.getElementById("overlay-content");
+  const attemptsLabel = document.getElementById("attempts-label");
+  const cooldownHint = document.getElementById("cooldown-hint");
+  const timerLabel = document.getElementById("timer-label");
+
+  let startTime = null;
+  let timerInterval = null;
+
+  let missingNumbers = [];
+  let layout = [];
+
+  const MAX_ATTEMPTS = 5;
+  const COOLDOWN_MS = 2 * 60 * 1000; // 2 Minuten
+  let attemptsLeft = MAX_ATTEMPTS;
+  let lockUntil = null;
+  let cooldownInterval = null;
+
+  const colorPalette = [
+    "#A6192E", "#1F2933", "#2563EB", "#059669", "#D97706",
+    "#7C3AED", "#DB2777", "#0891B2", "#65A30D", "#EA580C",
+    "#BE123C", "#4338CA", "#0F766E", "#CA8A04", "#4B5563"
+  ];
+
+  const fontFamilies = [
+    "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "'Courier New', Courier, monospace",
+    "Georgia, 'Times New Roman', serif",
+    "Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif",
+    "Trebuchet MS, Arial, sans-serif"
+  ];
+
+  const bubbleShapes = [
+    "999px",
+    "22% 78% 31% 69% / 69% 28% 72% 31%",
+    "68% 32% 64% 36% / 36% 64% 36% 64%",
+    "18%",
+    "42% 58% 51% 49% / 48% 40% 60% 52%"
+  ];
+
+
+  // Deterministischer Zufallsgenerator:
+  // Gleicher Link = gleiche fehlende Zahlen = gleiche Anordnung für alle Spieler.
+  function hashStringToSeed(text) {
+    let h = 2166136261;
+    for (let i = 0; i < text.length; i++) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function createSeededRandom(seed) {
+    let t = seed >>> 0;
+    return function () {
+      t += 0x6D2B79F5;
+      let r = t;
+      r = Math.imul(r ^ (r >>> 15), r | 1);
+      r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffleSeeded(array, random) {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function updateAttemptsLabel() {
+    attemptsLabel.textContent = `${attemptsLeft} / ${MAX_ATTEMPTS}`;
+  }
+
+  function shadeColor(hex, percent) {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const r = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+    const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+    return "#" + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+
+  function setInputsEnabled(enabled) {
+    guess1Input.disabled = !enabled;
+    guess2Input.disabled = !enabled;
+    checkBtn.disabled = !enabled;
+  }
+
+  function formatTime(totalSeconds) {
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }
+
+  function startTimer() {
+    startTime = Date.now();
+    timerLabel.textContent = "00:00";
+
+    if (timerInterval) clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      timerLabel.textContent = formatTime(elapsed);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    const finalTime = formatTime(elapsed);
+    timerLabel.textContent = finalTime;
+    return finalTime;
+  }
+
+  function startCooldown() {
+    lockUntil = Date.now() + COOLDOWN_MS;
+    setInputsEnabled(false);
+
+    if (cooldownInterval) clearInterval(cooldownInterval);
+
+    cooldownInterval = setInterval(() => {
+      const remaining = lockUntil - Date.now();
+      if (remaining <= 0) {
+        clearInterval(cooldownInterval);
+        cooldownInterval = null;
+        lockUntil = null;
+        attemptsLeft = MAX_ATTEMPTS;
+        updateAttemptsLabel();
+        setInputsEnabled(true);
+        cooldownHint.textContent = "Du hast wieder 5 neue Versuche. Nutze sie clever!";
+        resultEl.textContent = "";
+        resultEl.className = "result-text";
+        return;
+      }
+      const secs = Math.ceil(remaining / 1000);
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      const ss = String(s).padStart(2, "0");
+      cooldownHint.textContent = `Du hast deine 5 Versuche verbraucht. Bitte warte ${m}:${ss} Minuten für neue Versuche.`;
+    }, 500);
+  }
+
+  function decodeMissingFromCfg() {
+    const params = new URLSearchParams(window.location.search);
+    const cfg = params.get("cfg");
+    if (!cfg) return null;
+
+    let b64 = cfg.replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4 !== 0) {
+      b64 += "=";
+    }
+
+    try {
+      const raw = atob(b64);
+      const parts = raw.split(",");
+      if (parts.length < 2) return null;
+
+      const n1 = parseInt(parts[0], 10);
+      const n2 = parseInt(parts[1], 10);
+      if (
+        [n1, n2].some(n => isNaN(n) || n < 1 || n > 79) ||
+        n1 === n2
+      ) {
+        return null;
+      }
+
+      return [Math.min(n1, n2), Math.max(n1, n2)];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function rectsOverlap(a, b, padding = 0.65) {
+    const ax1 = a.x - a.size / 2 - padding;
+    const ax2 = a.x + a.size / 2 + padding;
+    const ay1 = a.y - a.size / 2 - padding;
+    const ay2 = a.y + a.size / 2 + padding;
+
+    const bx1 = b.x - b.size / 2 - padding;
+    const bx2 = b.x + b.size / 2 + padding;
+    const by1 = b.y - b.size / 2 - padding;
+    const by2 = b.y + b.size / 2 + padding;
+
+    return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
+  }
+
+  function generateLayout(numbers) {
+    const result = [];
+
+    // Seed hängt an den fehlenden Zahlen. Dadurch ist bei jedem Spieler,
+    // der denselben Link öffnet, die komplette Anordnung identisch.
+    const seedText = missingNumbers.slice().sort((a, b) => a - b).join("-");
+    const random = createSeededRandom(hashStringToSeed(seedText));
+
+    // Zahlen-Reihenfolge wird ebenfalls gemischt, damit es chaotischer wirkt.
+    const shuffledNumbers = shuffleSeeded(numbers, random);
+    const maxAttemptsPerNumber = 2500;
+
+    shuffledNumbers.forEach(num => {
+      let placed = false;
+      let attempts = 0;
+
+      while (!placed && attempts < maxAttemptsPerNumber) {
+        attempts++;
+
+        // Unterschiedliche Größen, aber bewusst begrenzt, damit 77 Zahlen
+        // ohne Überlappung auf die Fläche passen.
+        const size = 2.8 + random() * 3.2;
+        const x = size / 2 + 0.45 + random() * (100 - size - 0.9);
+        const y = size / 2 + 0.45 + random() * (100 - size - 0.9);
+
+        const candidate = {
+          number: num,
+          x,
+          y,
+          size,
+          color: colorPalette[Math.floor(random() * colorPalette.length)],
+          shape: bubbleShapes[Math.floor(random() * bubbleShapes.length)],
+          fontFamily: fontFamilies[Math.floor(random() * fontFamilies.length)],
+          fontWeight: random() > 0.45 ? "800" : "700",
+          rotation: random() < 0.12 ? 180 : (random() - 0.5) * 40,
+          opacity: 0.9 + random() * 0.1,
+          fontScale: 0.44 + random() * 0.18
+        };
+
+        const collision = result.some(existing => rectsOverlap(candidate, existing, 1.25));
+
+        if (!collision) {
+          result.push(candidate);
+          placed = true;
+        }
+      }
+
+      // Sicherheits-Fallback: Falls es sehr eng wird, wird die Zahl kleiner gesetzt,
+      // aber weiterhin nicht auf ein sichtbares Raster.
+      if (!placed) {
+        let fallbackPlaced = false;
+        for (let size = 1.9; size >= 1.25 && !fallbackPlaced; size -= 0.15) {
+          for (let i = 0; i < maxAttemptsPerNumber && !fallbackPlaced; i++) {
+            const x = size / 2 + 0.35 + random() * (100 - size - 0.7);
+            const y = size / 2 + 0.35 + random() * (100 - size - 0.7);
+            const candidate = {
+              number: num,
+              x,
+              y,
+              size,
+              color: colorPalette[Math.floor(random() * colorPalette.length)],
+              shape: bubbleShapes[Math.floor(random() * bubbleShapes.length)],
+              fontFamily: fontFamilies[Math.floor(random() * fontFamilies.length)],
+              fontWeight: random() > 0.45 ? "800" : "700",
+              rotation: random() < 0.12 ? 180 : (random() - 0.5) * 40,
+              opacity: 0.9 + random() * 0.1,
+              fontScale: 0.44 + random() * 0.18
+            };
+            const collision = result.some(existing => rectsOverlap(candidate, existing, 0.9));
+            if (!collision) {
+              result.push(candidate);
+              fallbackPlaced = true;
+            }
+          }
+        }
+      }
+    });
+
+    return result;
+  }
+
+  function renderBoard() {
+    board.innerHTML = "";
+    layout.forEach(item => {
+      const el = document.createElement("div");
+      el.className = "number-bubble";
+      el.textContent = item.number;
+
+      el.style.left = item.x + "%";
+      el.style.top = item.y + "%";
+      el.style.width = item.size + "%";
+      el.style.height = item.size + "%";
+
+      // Wichtig: Schriftgröße wird aus der tatsächlichen Board-Breite berechnet.
+      // Dadurch ragt die Zahl nicht aus ihrer Blase heraus und überlappt nicht optisch.
+      const boardWidth = board.clientWidth || 1000;
+      const bubbleWidthPx = boardWidth * (item.size / 100);
+      el.style.fontSize = (bubbleWidthPx * item.fontScale) + "px";
+      el.style.background = `linear-gradient(135deg, ${item.color}, ${shadeColor(item.color, -22)})`;
+      el.style.borderRadius = item.shape;
+      el.style.fontFamily = item.fontFamily;
+      el.style.fontWeight = item.fontWeight;
+      el.style.opacity = item.opacity;
+      el.style.transform = `translate(-50%, -50%) rotate(${item.rotation}deg)`;
+
+      board.appendChild(el);
+    });
+  }
+
+  function showMissingParamInfo() {
+    overlay.style.display = "flex";
+    overlayContent.innerHTML = `
+      <h2>Hinweis für Trainer</h2>
+      <p>
+        Für diese Runde wurde kein gültiger Konfigurationscode (<code>cfg</code>)
+        in der URL gefunden.
+      </p>
+      <p style="margin-top:8px;font-size:.9rem;color:#444;">
+        Bitte nutze die <strong>Host-Seite</strong>, um einen Link zu erzeugen,
+        oder starte mit einer zufälligen Auswahl.
+      </p>
+      <div class="overlay-buttons">
+        <button class="btn btn-primary" id="random-missing-btn">Zufällige fehlende Zahlen</button>
+      </div>
+    `;
+
+    document.getElementById("random-missing-btn").addEventListener("click", () => {
+      const all = Array.from({ length: 79 }, (_, i) => i + 1);
+      const idx1 = Math.floor(Math.random() * all.length);
+      const n1 = all.splice(idx1, 1)[0];
+      const idx2 = Math.floor(Math.random() * all.length);
+      const n2 = all[idx2];
+      missingNumbers = [Math.min(n1, n2), Math.max(n1, n2)];
+      startGame();
+      overlay.style.display = "none";
+    });
+  }
+
+  function startGame() {
+    const allNumbers = Array.from({ length: 79 }, (_, i) => i + 1);
+    const remaining = allNumbers.filter(n => !missingNumbers.includes(n));
+
+    layout = generateLayout(remaining);
+    renderBoard();
+
+    attemptsLeft = MAX_ATTEMPTS;
+    updateAttemptsLabel();
+    setInputsEnabled(true);
+    lockUntil = null;
+    if (cooldownInterval) {
+      clearInterval(cooldownInterval);
+      cooldownInterval = null;
+    }
+    cooldownHint.textContent = "Du kannst auch erstmal nur eine Zahl eintragen und prüfen.";
+
+    resultEl.textContent = "";
+    resultEl.className = "result-text";
+    guess1Input.value = "";
+    guess2Input.value = "";
+    guess1Input.style.backgroundColor = "";
+    guess2Input.style.backgroundColor = "";
+    guess1Input.style.borderColor = "#d1d5db";
+    guess2Input.style.borderColor = "#d1d5db";
+
+    startTimer();
+  }
+
+  function checkSolution() {
+    if (lockUntil && Date.now() < lockUntil) {
+      return;
+    }
+
+    guess1Input.style.backgroundColor = "";
+    guess2Input.style.backgroundColor = "";
+    guess1Input.style.borderColor = "#d1d5db";
+    guess2Input.style.borderColor = "#d1d5db";
+
+    const g1 = parseInt(guess1Input.value, 10);
+    const g2 = parseInt(guess2Input.value, 10);
+
+    const filled1 = !Number.isNaN(g1);
+    const filled2 = !Number.isNaN(g2);
+
+    resultEl.textContent = "";
+    resultEl.className = "result-text";
+
+    if (!filled1 && !filled2) {
+      resultEl.textContent = "Bitte trage mindestens eine Zahl zwischen 1 und 79 ein.";
+      resultEl.classList.add("result-error");
+      return;
+    }
+
+    if (filled1 && filled2 && g1 === g2) {
+      resultEl.textContent = "Die zwei fehlenden Zahlen sind unterschiedlich – bitte keine doppelte Zahl eingeben.";
+      resultEl.classList.add("result-error");
+      guess1Input.style.backgroundColor = "#fee2e2";
+      guess2Input.style.backgroundColor = "#fee2e2";
+      guess1Input.style.borderColor = "#b91c1c";
+      guess2Input.style.borderColor = "#b91c1c";
+      return;
+    }
+
+    const [a, b] = missingNumbers;
+
+    let isG1Correct = false;
+    let isG2Correct = false;
+
+    if (filled1) {
+      isG1Correct = (g1 === a || g1 === b);
+      if (isG1Correct) {
+        guess1Input.style.backgroundColor = "#dcfce7";
+        guess1Input.style.borderColor = "#16a34a";
+      } else {
+        guess1Input.style.backgroundColor = "#fee2e2";
+        guess1Input.style.borderColor = "#b91c1c";
+      }
+    }
+
+    if (filled2) {
+      isG2Correct = (g2 === a || g2 === b);
+      if (isG2Correct) {
+        guess2Input.style.backgroundColor = "#dcfce7";
+        guess2Input.style.borderColor = "#16a34a";
+      } else {
+        guess2Input.style.backgroundColor = "#fee2e2";
+        guess2Input.style.borderColor = "#b91c1c";
+      }
+    }
+
+    const sortedMissing = [...missingNumbers].sort((x, y) => x - y);
+    const bothFilled = filled1 && filled2;
+    let isWin = false;
+
+    if (bothFilled) {
+      const sortedGuess = [g1, g2].sort((x, y) => x - y);
+      isWin = sortedGuess[0] === sortedMissing[0] && sortedGuess[1] === sortedMissing[1];
+    }
+
+    if (isWin) {
+      const finalTime = stopTimer();
+      resultEl.textContent = `✅ Geschafft! Die fehlenden Zahlen sind ${sortedMissing[0]} und ${sortedMissing[1]}. Zeit: ${finalTime}.`;
+      resultEl.classList.add("result-ok");
+      setInputsEnabled(false);
+      if (cooldownInterval) {
+        clearInterval(cooldownInterval);
+        cooldownInterval = null;
+      }
+      cooldownHint.textContent = "Super! Du hast die Aufgabe gelöst.";
+
+      overlay.style.display = "flex";
+      overlayContent.innerHTML = `
+        <h2>🎉 Glückwunsch, geschafft!</h2>
+        <p>Du hast beide fehlenden Zahlen gefunden:</p>
+        <p><strong>${sortedMissing[0]} und ${sortedMissing[1]}</strong></p>
+        <p>⏱️ Benötigte Zeit: <strong>${finalTime}</strong></p>
+        <p style="margin-top:8px;font-size:.9rem;color:#4b5563;">
+          Genau so hilft Struktur im Alltag dabei, Dinge schneller zu finden.
+        </p>
+        <div class="overlay-buttons">
+          <button class="btn btn-primary" id="close-success">Schließen</button>
+        </div>
+      `;
+      document.getElementById("close-success").addEventListener("click", () => {
+        overlay.style.display = "none";
+      });
+
+      return;
+    }
+
+    const anyWrong =
+      (filled1 && !isG1Correct) ||
+      (filled2 && !isG2Correct);
+
+    const anyCorrect =
+      (filled1 && isG1Correct) ||
+      (filled2 && isG2Correct);
+
+    if (!anyWrong && anyCorrect) {
+      resultEl.textContent = "✅ Diese Zahl(en) stimmt/stimmen schon – dir fehlt noch die andere Zahl.";
+      resultEl.classList.add("result-ok");
+      return;
+    }
+
+    if (anyWrong) {
+      attemptsLeft = Math.max(0, attemptsLeft - 1);
+      updateAttemptsLabel();
+    }
+
+    if (anyWrong && attemptsLeft > 0) {
+      resultEl.textContent = `❌ Noch nicht ganz richtig – du hast noch ${attemptsLeft} von ${MAX_ATTEMPTS} Versuchen.`;
+      resultEl.classList.add("result-error");
+    } else if (anyWrong && attemptsLeft === 0) {
+      resultEl.textContent = "❌ Keine Versuche mehr – du bist jetzt für 2 Minuten gesperrt.";
+      resultEl.classList.add("result-error");
+      startCooldown();
+    }
+  }
+
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    if (!layout || layout.length === 0) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderBoard, 120);
+  });
+
+  checkBtn.addEventListener("click", checkSolution);
+  guess1Input.addEventListener("keydown", e => { if (e.key === "Enter") checkSolution(); });
+  guess2Input.addEventListener("keydown", e => { if (e.key === "Enter") checkSolution(); });
+
+  window.addEventListener("load", () => {
+    const fromCfg = decodeMissingFromCfg();
+    if (!fromCfg) {
+      showMissingParamInfo();
+    } else {
+      missingNumbers = fromCfg;
+      startGame();
+    }
+  });
+</script>
+</body>
+</html>
