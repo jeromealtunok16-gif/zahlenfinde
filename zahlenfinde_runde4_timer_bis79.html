@@ -592,16 +592,16 @@
     }
   }
 
-  function rectsOverlap(a, b) {
-    const ax1 = a.x - a.size / 2;
-    const ax2 = a.x + a.size / 2;
-    const ay1 = a.y - a.size / 2;
-    const ay2 = a.y + a.size / 2;
+  function rectsOverlap(a, b, padding = 0.65) {
+    const ax1 = a.x - a.size / 2 - padding;
+    const ax2 = a.x + a.size / 2 + padding;
+    const ay1 = a.y - a.size / 2 - padding;
+    const ay2 = a.y + a.size / 2 + padding;
 
-    const bx1 = b.x - b.size / 2;
-    const bx2 = b.x + b.size / 2;
-    const by1 = b.y - b.size / 2;
-    const by2 = b.y + b.size / 2;
+    const bx1 = b.x - b.size / 2 - padding;
+    const bx2 = b.x + b.size / 2 + padding;
+    const by1 = b.y - b.size / 2 - padding;
+    const by2 = b.y + b.size / 2 + padding;
 
     return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
   }
@@ -614,48 +614,74 @@
     const seedText = missingNumbers.slice().sort((a, b) => a - b).join("-");
     const random = createSeededRandom(hashStringToSeed(seedText));
 
-    // Festes Raster: Jede Zahl bekommt genau ein eigenes Feld.
-    // Dadurch können sich Zahlen nicht mehr übereinanderlegen.
-    const cols = 11;
-    const rows = 8;
-    const cellWidth = 100 / cols;
-    const cellHeight = 100 / rows;
-
-    const cells = [];
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        cells.push({ row, col });
-      }
-    }
-
-    const shuffledCells = shuffleSeeded(cells, random);
+    // Zahlen-Reihenfolge wird ebenfalls gemischt, damit es chaotischer wirkt.
     const shuffledNumbers = shuffleSeeded(numbers, random);
+    const maxAttemptsPerNumber = 2500;
 
-    shuffledNumbers.forEach((num, index) => {
-      const cell = shuffledCells[index];
+    shuffledNumbers.forEach(num => {
+      let placed = false;
+      let attempts = 0;
 
-      // Kleine Bewegung innerhalb der Zelle, aber mit genug Abstand zum Rand.
-      const jitterX = (random() - 0.5) * cellWidth * 0.36;
-      const jitterY = (random() - 0.5) * cellHeight * 0.36;
+      while (!placed && attempts < maxAttemptsPerNumber) {
+        attempts++;
 
-      const x = (cell.col + 0.5) * cellWidth + jitterX;
-      const y = (cell.row + 0.5) * cellHeight + jitterY;
+        // Unterschiedliche Größen, aber bewusst begrenzt, damit 77 Zahlen
+        // ohne Überlappung auf die Fläche passen.
+        const size = 2.8 + random() * 3.2;
+        const x = size / 2 + 0.45 + random() * (100 - size - 0.9);
+        const y = size / 2 + 0.45 + random() * (100 - size - 0.9);
 
-      const size = 3.0 + random() * 1.25;
+        const candidate = {
+          number: num,
+          x,
+          y,
+          size,
+          color: colorPalette[Math.floor(random() * colorPalette.length)],
+          shape: bubbleShapes[Math.floor(random() * bubbleShapes.length)],
+          fontFamily: fontFamilies[Math.floor(random() * fontFamilies.length)],
+          fontWeight: random() > 0.45 ? "800" : "700",
+          rotation: random() < 0.12 ? 180 : (random() - 0.5) * 40,
+          opacity: 0.9 + random() * 0.1,
+          fontScale: 0.44 + random() * 0.18
+        };
 
-      result.push({
-        number: num,
-        x,
-        y,
-        size,
-        color: colorPalette[Math.floor(random() * colorPalette.length)],
-        shape: bubbleShapes[Math.floor(random() * bubbleShapes.length)],
-        fontFamily: fontFamilies[Math.floor(random() * fontFamilies.length)],
-        fontWeight: random() > 0.45 ? "800" : "700",
-        rotation: (random() - 0.5) * 28,
-        opacity: 0.92 + random() * 0.08,
-        fontScale: 0.58 + random() * 0.22
-      });
+        const collision = result.some(existing => rectsOverlap(candidate, existing, 1.25));
+
+        if (!collision) {
+          result.push(candidate);
+          placed = true;
+        }
+      }
+
+      // Sicherheits-Fallback: Falls es sehr eng wird, wird die Zahl kleiner gesetzt,
+      // aber weiterhin nicht auf ein sichtbares Raster.
+      if (!placed) {
+        let fallbackPlaced = false;
+        for (let size = 1.9; size >= 1.25 && !fallbackPlaced; size -= 0.15) {
+          for (let i = 0; i < maxAttemptsPerNumber && !fallbackPlaced; i++) {
+            const x = size / 2 + 0.35 + random() * (100 - size - 0.7);
+            const y = size / 2 + 0.35 + random() * (100 - size - 0.7);
+            const candidate = {
+              number: num,
+              x,
+              y,
+              size,
+              color: colorPalette[Math.floor(random() * colorPalette.length)],
+              shape: bubbleShapes[Math.floor(random() * bubbleShapes.length)],
+              fontFamily: fontFamilies[Math.floor(random() * fontFamilies.length)],
+              fontWeight: random() > 0.45 ? "800" : "700",
+              rotation: random() < 0.12 ? 180 : (random() - 0.5) * 40,
+              opacity: 0.9 + random() * 0.1,
+              fontScale: 0.44 + random() * 0.18
+            };
+            const collision = result.some(existing => rectsOverlap(candidate, existing, 0.9));
+            if (!collision) {
+              result.push(candidate);
+              fallbackPlaced = true;
+            }
+          }
+        }
+      }
     });
 
     return result;
@@ -673,7 +699,11 @@
       el.style.width = item.size + "%";
       el.style.height = item.size + "%";
 
-      el.style.fontSize = (item.size * item.fontScale) + "vw";
+      // Wichtig: Schriftgröße wird aus der tatsächlichen Board-Breite berechnet.
+      // Dadurch ragt die Zahl nicht aus ihrer Blase heraus und überlappt nicht optisch.
+      const boardWidth = board.clientWidth || 1000;
+      const bubbleWidthPx = boardWidth * (item.size / 100);
+      el.style.fontSize = (bubbleWidthPx * item.fontScale) + "px";
       el.style.background = `linear-gradient(135deg, ${item.color}, ${shadeColor(item.color, -22)})`;
       el.style.borderRadius = item.shape;
       el.style.fontFamily = item.fontFamily;
@@ -873,6 +903,14 @@
       startCooldown();
     }
   }
+
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    if (!layout || layout.length === 0) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderBoard, 120);
+  });
 
   checkBtn.addEventListener("click", checkSolution);
   guess1Input.addEventListener("keydown", e => { if (e.key === "Enter") checkSolution(); });
